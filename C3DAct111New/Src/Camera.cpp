@@ -1,6 +1,6 @@
 #include "Camera.h"
 #include "Player.h"
-//#include "Map.h"
+#include "Ground.h"
 #include "Time.h"
 
 namespace {
@@ -18,7 +18,6 @@ namespace {
 	const float RotationXMinLimit = -30.0f; // X回転の限界
 	const float LeapTime = 0.5f; // カメラの移動時間
 };
-
 
 Camera::Camera()
 {
@@ -93,17 +92,13 @@ void Camera::Update()
 		eye = pPosition + eyePosition * XMMatrixRotationX(rotation.x * Deg2Rad) * m * XMMatrixRotationY(rotation.y * Deg2Rad);
 	}
 
-	{ // 注視点と視点の間に障害物があれば、障害物の手前に視点を移動させる
-//		VECTOR3 hit;
-//		VECTOR3 norm;
-//		CMapProc* pMap = ObjectManager::FindGameObject<CMapProc>();
-//		if (pMap->Hitcheck(eye, look, &hit, &norm))   // 障害物との接触チェック
-//		{
-//			VECTOR3 diff = hit - look;
-//			float length = diff.Length();
-//			float len = length - 0.01f; // 障害物の1cm手前にする
-//			eye = look + diff / length * len;
-//		}
+	Ground* pGround = ObjectManager::FindGameObject<Ground>();
+	if (pGround != nullptr) {
+		VECTOR3 hit;
+		if (pGround->HitCheckLine(look, eye, &hit)) {
+			eye = hit;
+			eye = (hit - look) * 0.99f + look;
+		}
 	}
 
 	// 他のクラスで参照しているので、とりあえず残す

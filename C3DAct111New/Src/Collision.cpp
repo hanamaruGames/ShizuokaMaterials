@@ -4,6 +4,11 @@
 //	                                                      Collision.cpp
 //------------------------------------------------------------------------
 #include "Collision.h"
+#include "GameMain.h"
+
+CCollision::CCollision() : CCollision(GameDevice()->m_pFbxMeshCtrl)	   		   // -- 2024.3.13
+{
+}
 
 //------------------------------------------------------------------------
 //	コンストラクタ

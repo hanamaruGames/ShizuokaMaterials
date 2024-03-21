@@ -1283,18 +1283,9 @@ MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const MATRIX4
 	return mBoneWorld * mWorld;  // ワールドマトリックスと掛け合わせる
 }
 
-MATRIX4X4 CFbxMesh::GetFrameMatrices(const DWORD& nBone)
-{
-	ANIMATION_STATUS anim;
-	anim.animNum = animInfo.animID;
-	anim.animNumOld = animInfo.animID;
-	anim.animFrame = animInfo.frame;
-	MATRIX4X4 ret = GetFrameMatrices(anim, nBone);
-	return ret;
-}
-
 MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const MATRIX4X4& mWorld, const DWORD& nBone)
 {
+	// メッシュ番号は０として呼び出し
 	return GetFrameMatrices(animStatus, mWorld, nBone, 0);
 }
 

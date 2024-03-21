@@ -195,7 +195,9 @@ public:
 	MATRIX4X4			m_mWorldInv;	// 移動マトリックスの現在位置の逆マトリックス
 
 public:
+	CCollision();		   // -- 2024.3.13
 	CCollision(CFbxMeshCtrl* pFbxMeshCtrl);   // -- 2021.2.4
+
 	~CCollision();
 
 	bool	AddFbxLoad( const TCHAR*);										// -- 2022.11.14

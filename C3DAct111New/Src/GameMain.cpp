@@ -154,6 +154,7 @@ HRESULT CGameMain::Init()
 //------------------------------------------------------------------------
 void CGameMain::Update()
 {
+	MyImgui::ImguiNewFrame();   // MyImgui描画前処理    // -- 2020.11.15
 
 	m_pDI->GetInput();			// 入力情報の取得
 	m_pFont->Refresh();         // フォント情報のリフレッシュ
@@ -185,8 +186,6 @@ void CGameMain::GameMain()
 
 void CGameMain::Draw()
 {
-	MyImgui::ImguiNewFrame();   // MyImgui描画前処理    // -- 2020.11.15
-
 	//画面クリア（実際は単色で画面を塗りつぶす処理）
 	float ClearColor[4] = { 0,0,0,1 };// クリア色作成　RGBAの順
 	m_pD3D->ClearRenderTarget(ClearColor); // 画面クリア

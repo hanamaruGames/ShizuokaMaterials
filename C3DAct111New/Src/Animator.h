@@ -18,28 +18,28 @@ private:
 	struct AnimationFrame {
 		int framePoseNum;
 		MATRIX4X4 framePose;
+
 	};
 	struct AnimationData {
 		//ANIMATIONç\ë¢ëÃÇÃíÜ
 		int startFrame;
 		int endFrame;
-		//int rootBoneMesh;
-		//int rootBone;
-		//// BONEç\ë¢ëÃÇÃíÜ
-		//MATRIX4X4 bindPose;
-		//int framePoseNum;
-		//std::vector<MATRIX4X4> framePose;
-		//// ÇªÇÃëºèÓïÒ
-		//enum RootAnimType {
-		//	eRootAnimNone = 0,
-		//	eRootAnimXZ,
-		//	eRootAnim,
-		//};
-		//RootAnimType type;
-		//int meshNum;
-		//int boneNum;
+		int rootBoneMesh;
+		int rootBone;
+		// BONEç\ë¢ëÃÇÃíÜ
+		MATRIX4X4 bindPose;
+		int framePoseNum;
+		std::vector<MATRIX4X4> framePose;
+		// ÇªÇÃëºèÓïÒ
+		enum RootAnimType {
+			eRootAnimNone = 0,
+			eRootAnimXZ,
+			eRootAnim,
+		};
+		RootAnimType type;
+		int meshNum;
 		bool loop;
-		int loadedID;
+		int boneNum;
 	};
 	Object3D* object;
 	int playingID;

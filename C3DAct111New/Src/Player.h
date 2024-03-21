@@ -8,7 +8,6 @@ public:
 	Player();
 	~Player();
 	void Update() override;
-//	void Draw() override;
 private:
 	Animator* animator;
 	enum AnimationID {
@@ -22,12 +21,10 @@ private:
 		anmAttack2,
 		anmAttack3,
 	};
-
-	VECTOR3 velocity; // XZ平面の移動量
+	VECTOR3 velocity;
 	bool jumping;
 	float jumpVelocity;
 
-	// プレイヤーの状態遷移
 	enum State {
 		stNormal = 0,
 		stDamage,
@@ -44,5 +41,5 @@ private:
 	void updateAttack2();
 	void updateAttack3();
 
-//	CFbxMesh* mesh2; // 武器の当たり判定位置を表示するため
+	void viewAnimation();
 };

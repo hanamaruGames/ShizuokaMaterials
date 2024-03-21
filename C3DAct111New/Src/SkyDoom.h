@@ -4,7 +4,7 @@
 class SkyDoom : public Object3D
 {
 public:
+	void Draw() override;
 	SkyDoom();
 	~SkyDoom();
-	void Draw() override;
 };

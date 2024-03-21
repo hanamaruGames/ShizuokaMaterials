@@ -46,7 +46,7 @@ void ObjectManager::Update()
 {
 	Time::Refresh();
 	if (needSortUpdate) {
-		updateObjects.sort([](UpdateObject& a, UpdateObject& b) {return a.priority < b.priority; });
+		updateObjects.sort([](UpdateObject& a, UpdateObject& b) {return a.priority > b.priority; });
 		needSortUpdate = false;
 	}
 	for (auto it = updateObjects.begin(); it != updateObjects.end(); ) {
@@ -72,7 +72,7 @@ void ObjectManager::Update()
 void ObjectManager::Draw()
 {
 	if (needSortDraw) {
-		drawObjects.sort([](DrawObject& a, DrawObject& b) {return a.order < b.order; });
+		drawObjects.sort([](DrawObject& a, DrawObject& b) {return a.order > b.order; });
 		needSortDraw = false;
 	}
 	for (DrawObject node : drawObjects) {

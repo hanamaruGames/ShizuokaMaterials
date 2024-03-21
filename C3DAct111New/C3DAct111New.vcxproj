@@ -297,6 +297,7 @@
     <ClInclude Include="Src\Leap.h" />
     <ClInclude Include="Src\Macro.h" />
     <ClInclude Include="Src\Main.h" />
+    <ClInclude Include="Src\MeshCollider.h" />
     <ClInclude Include="Src\MyImgui.h" />
     <ClInclude Include="Src\MyMath.h" />
     <ClInclude Include="Src\Object3D.h" />
@@ -333,6 +334,7 @@
     <ClCompile Include="Src\GameMain.cpp" />
     <ClCompile Include="Src\Ground.cpp" />
     <ClCompile Include="Src\Main.cpp" />
+    <ClCompile Include="Src\MeshCollider.cpp" />
     <ClCompile Include="Src\MyImgui.cpp" />
     <ClCompile Include="Src\MyMath.cpp" />
     <ClCompile Include="Src\Object3D.cpp" />

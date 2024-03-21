@@ -35,8 +35,8 @@ void Animator::Update()
 			finished = true;
 		}
 	}
-	AnimationData& anim = animationList[playingID];
-	object->Mesh()->SetAnimation(anim.loadedID, frame);
+	AnimationData anim = animationList[playingID];
+	object->Mesh()->SetAnimation(playingID, frame);
 }
 
 void Animator::Load(int id, std::string filename, bool loop)
@@ -44,18 +44,17 @@ void Animator::Load(int id, std::string filename, bool loop)
 	if (object == nullptr || object->Mesh() == nullptr)
 		return;
 	CFbxMesh* pMesh = object->Mesh();
-	AnimationData info;
 	pMesh->LoadAnimation(filename.c_str());
-	int n = pMesh->m_allAnimationCount-1;
-	info.loadedID = n;
-	info.startFrame = pMesh->m_Animation[n].startFrame;
-	info.endFrame = pMesh->m_Animation[n].endFrame;
+	AnimationData info;
+	info.startFrame = pMesh->m_Animation[id].startFrame;
+	info.endFrame = pMesh->m_Animation[id].endFrame;
 	info.loop = loop;
 	animationList[id] = info;
 }
 
 void Animator::Play(int id, bool force)
 {
+	playSpeed = 1.0f;
 	if (object == nullptr || object->Mesh() == nullptr)
 		return;
 

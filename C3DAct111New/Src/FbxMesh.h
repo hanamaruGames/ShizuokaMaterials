@@ -252,7 +252,6 @@ public:
 	MATRIX4X4 GetFrameMatrices(ANIMATION_STATUS& animStatus, const DWORD& nBone, const DWORD& nMesh);
 	MATRIX4X4 GetFrameMatrices(ANIMATION_STATUS& animStatus, const MATRIX4X4& mWorld, const DWORD& nBone);
 	MATRIX4X4 GetFrameMatrices(ANIMATION_STATUS& animStatus, const MATRIX4X4& mWorld, const DWORD& nBone, const DWORD& nMesh);
-	MATRIX4X4 GetFrameMatrices(const DWORD& nBone);
 
 //	int GetRootAnimType(const int& animNum) { return m_RootAnimType[animNum]; }      // -- 2020.12.15 -- 3
 	MATRIX4X4 GetRootAnimMatrices(ANIMATION_STATUS& animStatus, const int& UpFrame = 0);      // -- 2020.12.15 -- 3

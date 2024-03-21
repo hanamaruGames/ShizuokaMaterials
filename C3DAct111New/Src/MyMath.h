@@ -162,8 +162,8 @@ struct VECTOR3 : public XMFLOAT3
 		return XMFLOAT3(this->x, this->y, this->z);
 	}
 
-	float LengthSquare() { return this->x * this->x + this->y * this->y + this->z * this->z; }
-	float Length() { return sqrtf(LengthSquare()); }
+	float LengthSquare() const { return this->x * this->x + this->y * this->y + this->z * this->z; }
+	float Length() const { return sqrtf(LengthSquare()); }
 };
 
 //
@@ -372,9 +372,14 @@ inline const VECTOR3 operator *(const VECTOR3& vec, const MATRIX4X4& mat) {
 	return XMVector3Transform(vec, mat);
 }
 
-inline const VECTOR3 operator *=(VECTOR3& vec, MATRIX4X4& mat) {
+inline const VECTOR3 operator *=(VECTOR3& vec, const MATRIX4X4& mat) {
 	vec = XMVector3Transform(vec, mat);
 	return vec;
+}
+
+inline float Dot(const VECTOR3& v1, const VECTOR3& v2) {
+	VECTOR3 d = XMVector3Dot(v1, v2);
+	return d.x;
 }
 
 // -----------------------------------------------------------------------------
