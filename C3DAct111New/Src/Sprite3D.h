@@ -1,6 +1,6 @@
 // ========================================================================================
 //
-// ３Ｄ用のスプライトの処理                                        ver 3.0        2021.1.11
+// ３Ｄ用のスプライトの処理                                        ver 3.3        2024.3.23
 //
 //   ポリゴンの表面判定を変更。左回りを表とする
 //   Sprite3D.cpp Direct3D.h が変更となっている
@@ -121,10 +121,17 @@ public:
 	// 3DSprite   // -- 2018.8.10
 	HRESULT SetSrc3D(const float& fDestWidth, const float& fDestHeight, const DWORD& dwSrcX, const DWORD& dwSrcY, const DWORD& dwSrcWidth, const DWORD& dwSrcHeight);   // 2018.9.30
 	HRESULT SetSrc3D(CSpriteImage* pImage, const float& fDestWidth, const float& fDestHeight, const DWORD& dwSrcX, const DWORD& dwSrcY, const DWORD& dwSrcWidth, const DWORD& dwSrcHeight);
+
 	bool Draw3D(CSpriteImage* pImage, const VECTOR3& vPos, const MATRIX4X4& mView, const MATRIX4X4& mProj, const VECTOR3& vEye, const VECTOR2& vSize, const VECTOR2& vSrcPos, const VECTOR2& vSrcSize, const float& fAlpha = 1.0f);
 	bool Draw3D(const VECTOR3& vPos, const MATRIX4X4& mView, const MATRIX4X4& mProj, const VECTOR3& vEye, const VECTOR2& vSize, const VECTOR2& vSrcPos, const VECTOR2& vSrcSize, const float& fAlpha = 1.0f);
 	bool Draw3D(const VECTOR3& vPos, const MATRIX4X4& mView, const MATRIX4X4& mProj, const VECTOR3& vEye);
 	bool DrawLine3D(const VECTOR3& vStart, const VECTOR3& vEnd, const MATRIX4X4& mView, const MATRIX4X4& mProj, const VECTOR3& vEye, const DWORD& colorABGR, const float& fAlpha = 1.0f);  // -- 2020.1.24
+
+	bool Draw3D(CSpriteImage* pImage, const VECTOR3& vPos, const VECTOR2& vSize, const VECTOR2& vSrcPos, const VECTOR2& vSrcSize, const float& fAlpha = 1.0f);   // -- 2024.3.23
+	bool Draw3D(const VECTOR3& vPos, const VECTOR2& vSize, const VECTOR2& vSrcPos, const VECTOR2& vSrcSize, const float& fAlpha = 1.0f);    // -- 2024.3.23
+	bool Draw3D(const VECTOR3& vPos);																					// -- 2024.3.23
+	bool DrawLine3D(const VECTOR3& vStart, const VECTOR3& vEnd, const DWORD& colorABGR, const float& fAlpha = 1.0f);  // -- 2024.3.23
+
 
 	void    SetShader();
 	void    ResetShader();
@@ -198,6 +205,7 @@ public:
 	// ３Ｄフォント
 	HRESULT CreateVB3D(const float& fDestWidth, const float& fDestHeight);
 	bool Draw3D(const VECTOR3& vPos, const MATRIX4X4& mView, const MATRIX4X4& mProj, const VECTOR3& vEye, const TCHAR* szText, const VECTOR2& vSize, const DWORD& colorABGR, const float& fAlpha = 1.0f, const TCHAR* szFontName = nullptr);
+	bool Draw3D(const VECTOR3& vPos, const TCHAR* szText, const VECTOR2& vSize, const DWORD& colorABGR, const float& fAlpha = 1.0f, const TCHAR* szFontName = nullptr);		// -- 2024.3.23
 
 	CFontTexture(CShader* pShader);
 	~CFontTexture();

@@ -143,15 +143,15 @@ HRESULT CDirect3D::InitD3D(HWND hWnd, DWORD dwWidth, DWORD dwHeight)
 	//rdc.CullMode = D3D11_CULL_NONE;	// 常にすべての三角形を描画
 	rdc.CullMode = D3D11_CULL_BACK;		// 後ろ向きの三角形を描画しません
 
-	rdc.FrontCounterClockwise = true;		// 三角形の頂点がレンダーターゲット上で左回りならば三角形は前向きと見なされる
+	rdc.FrontCounterClockwise = FALSE;		// 三角形の頂点がレンダーターゲット上で右回りならば三角形は前向きと見なされる  	 // -- 2024.3.23
 
 	rdc.FillMode = D3D11_FILL_SOLID;
-	m_pDevice->CreateRasterizerState(&rdc, &m_pRStateL);	// ソリッド表示
+	m_pDevice->CreateRasterizerState(&rdc, &m_pRStateR);			 	 // -- 2024.3.23
 
-	rdc.FillMode = D3D11_FILL_WIREFRAME;
-	m_pDevice->CreateRasterizerState(&rdc, &m_pRStateLW);	// ワイヤーフレーム表示
+	rdc.FillMode = D3D11_FILL_WIREFRAME;	// ワイヤーフレーム表示
+	m_pDevice->CreateRasterizerState(&rdc, &m_pRStateRW);			 	 // -- 2024.3.23
 
-	m_pDeviceContext->RSSetState(m_pRStateL);     // 左回りのソリッド表示を設定する     // -- 2021.1.11
+	m_pDeviceContext->RSSetState(m_pRStateR);  // 右回りは前向きと設定する	 	 // -- 2024.3.23
 
 	// テクスチャーサンプラーを作成する
 	InitSampler();
@@ -882,8 +882,8 @@ void CDirect3D::DestroyD3D()
 	SAFE_RELEASE(m_pBlendStateTrapen);
 	SAFE_RELEASE(m_pBlendStateAdd);
 
-	SAFE_RELEASE(m_pRStateL);
-	SAFE_RELEASE(m_pRStateLW);
+	SAFE_RELEASE(m_pRStateR);	   	 // -- 2024.3.23
+	SAFE_RELEASE(m_pRStateRW);	   	 // -- 2024.3.23
 
 	SAFE_RELEASE(m_pFactory);      // -- 2018.12.26
 

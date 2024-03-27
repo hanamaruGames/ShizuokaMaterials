@@ -33,7 +33,7 @@ void MeshCollider::MakeFromMesh(CFbxMesh* mesh)
             VECTOR3 v0 = vertices[inf.indices[0]];
             VECTOR3 v1 = vertices[inf.indices[1]];
             VECTOR3 v2 = vertices[inf.indices[2]];
-            inf.normal = XMVector3Normalize(XMVector3Cross(v2 - v0, v1 - v0)); // meshデータは、反時計回りが表なので
+            inf.normal = XMVector3Normalize(XMVector3Cross(v1 - v0, v2 - v0));
             inf.mesh = m;
             polygons.push_back(inf);
         }
@@ -218,13 +218,13 @@ bool MeshCollider::checkPolygonToLine(const PolygonInfo& info, const VECTOR3& fr
     // 交点の座標を求める
     VECTOR3 pos = from + (to - from) * nFrom / (nFrom + nTo);
     // 三角形の中かを調べる（外積ベクトルが法線と同じ向き）
-    float n = Dot(XMVector3Cross(pos - v0, v1 - v0), info.normal);
+    float n = Dot(XMVector3Cross(v1 - v0, pos - v0), info.normal);
     if (n < 0.0f)
         return false;
-    n = Dot(XMVector3Cross(pos - v1, v2 - v1), info.normal);
+    n = Dot(XMVector3Cross(v2 - v1, pos - v1), info.normal);
     if (n < 0.0f)
         return false;
-    n = Dot(XMVector3Cross(pos - v2, v0 - v2), info.normal);
+    n = Dot(XMVector3Cross(v0 - v2, pos - v2), info.normal);
     if (n < 0.0f)
         return false;
     hit->length = (pos - from).Length();
@@ -256,7 +256,7 @@ bool MeshCollider::checkPolygonToSphere(const PolygonInfo& info, const VECTOR3& 
         return false;
 
     // 交点がポリゴンの内側か調べる（外積の向きが法線と同じになるはず）
-    float n = Dot(XMVector3Cross(pos - v0, v1 - v0), info.normal);
+    float n = Dot(XMVector3Cross(v1 - v0, pos - v0), info.normal);
     bool adjusted = false;
 
     if (n < 0.0f) { // 辺の上に交点があると、外積が0なので、nも0になる
@@ -272,7 +272,7 @@ bool MeshCollider::checkPolygonToSphere(const PolygonInfo& info, const VECTOR3& 
         return false;
 #endif
     }
-    n = Dot(XMVector3Cross(pos - v1, v2 - v1), info.normal);
+    n = Dot(XMVector3Cross(v2 - v1, pos - v1), info.normal);
     if (n < 0.0f) {
 #if EDGE_HIT>0
         VECTOR3 vNorm = XMVector3Normalize(v2 - v1);
@@ -286,7 +286,7 @@ bool MeshCollider::checkPolygonToSphere(const PolygonInfo& info, const VECTOR3& 
         return false;
 #endif
     }
-    n = Dot(XMVector3Cross(pos - v2, v0 - v2), info.normal);
+    n = Dot(XMVector3Cross(v0 - v2, pos - v2), info.normal);
     if (n < 0.0f) {
 #if EDGE_HIT>0
         VECTOR3 vNorm = XMVector3Normalize(v0 - v2);

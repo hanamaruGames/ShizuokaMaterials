@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 //
-//  Direct3Dを利用するためのライブラリ                ver 3.0        2022.9.14
+//  Direct3Dを利用するためのライブラリ                ver 3.3        2024.3.23
 // 
 //	①　Direct3Dの初期化	
 //	②　テクスチャーサンプラーとブレンドステートの作成
@@ -77,8 +77,8 @@ public:
 	IWICImagingFactory*       m_pFactory;    // -- 2018.12.26
 
 	// ラスタライザステート
-	ID3D11RasterizerState*    m_pRStateL;  // 左回りを表面とする
-	ID3D11RasterizerState*    m_pRStateLW;  // 左回りを表面とする。ワイヤーフレーム表示
+	ID3D11RasterizerState* m_pRStateR;  // 右回りを表面とする							 // -- 2024.3.23
+	ID3D11RasterizerState* m_pRStateRW;  // 右回りを表面とする。ワイヤーフレーム表示		 // -- 2024.3.23
 
 	ID3D11RenderTargetView*   m_pTarget_TexRTV;   // 現在のレンダーターゲット   // -- 2019.4.19
 	ID3D11DepthStencilView*   m_pTarget_DSTexDSV; // 現在のレンダーターゲット   // -- 2019.4.19

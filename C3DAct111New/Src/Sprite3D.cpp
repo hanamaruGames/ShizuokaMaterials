@@ -1,8 +1,8 @@
 // ========================================================================================
 //
-// ３Ｄ用のスプライトの処理                                        ver 3.0        2022.11.8
+// ３Ｄ用のスプライトの処理                                        ver 3.3        2024.3.23
 //
-//   ポリゴンの表面判定を変更。左回りを表とする
+//   ポリゴンの表面判定を変更。右回りを表とする
 //   Sprite3D.cpp Direct3D.h が変更となっている
 //
 //                                                                             Sprite3D.cpp
@@ -273,8 +273,8 @@ HRESULT CSprite::SetSrc(const DWORD& srcX, const DWORD& srcY, const DWORD& srcwi
 	SpriteVertex vertices[] =
 	{
 		VECTOR3(0,     (float)m_dwDestHeight, 0), VECTOR2((float)m_dwSrcX / m_pImage->m_dwImageWidth,                (float)(m_dwSrcY + m_dwSrcHeight) / m_pImage->m_dwImageHeight),    //頂点1  左下
-		VECTOR3((float)m_dwDestWidth, (float)m_dwDestHeight, 0), VECTOR2((float)(m_dwSrcX + m_dwSrcWidth) / m_pImage->m_dwImageWidth, (float)(m_dwSrcY + m_dwSrcHeight) / m_pImage->m_dwImageHeight),      //頂点2　右下  // -- 2021.1.11
-		VECTOR3(0,                         0, 0), VECTOR2((float)m_dwSrcX / m_pImage->m_dwImageWidth,                (float)m_dwSrcY / m_pImage->m_dwImageHeight),                      //頂点3　左上  // -- 2021.1.11
+		VECTOR3(0,                         0, 0), VECTOR2((float)m_dwSrcX / m_pImage->m_dwImageWidth,                (float)m_dwSrcY / m_pImage->m_dwImageHeight),                      //頂点2　左上  // -- 2024.3.23
+		VECTOR3((float)m_dwDestWidth, (float)m_dwDestHeight, 0), VECTOR2((float)(m_dwSrcX + m_dwSrcWidth) / m_pImage->m_dwImageWidth, (float)(m_dwSrcY + m_dwSrcHeight) / m_pImage->m_dwImageHeight),      //頂点3　右下  // -- 2024.3.23
 		VECTOR3((float)m_dwDestWidth,                     0, 0), VECTOR2((float)(m_dwSrcX + m_dwSrcWidth) / m_pImage->m_dwImageWidth, (float)m_dwSrcY / m_pImage->m_dwImageHeight),                      //頂点4　右上
 	};
 
@@ -656,8 +656,8 @@ void  CSprite::DrawRect(const float& posX, const float& posY, const DWORD& width
 	SpriteVertex vertices[] =
 	{
 		{ VECTOR3(0, (float)height, 0),             VECTOR2(0,0) },      //頂点1  左下
-		{ VECTOR3((float)width,  (float)height, 0), VECTOR2(0,0) },      //頂点2　右下    // -- 2021.1.11
-		{ VECTOR3(0, 0, 0),                         VECTOR2(0,0) },      //頂点3　左上    // -- 2021.1.11
+		{ VECTOR3(0, 0, 0),                         VECTOR2(0,0) },      //頂点3　左上    // -- 2024.3.23
+		{ VECTOR3((float)width,  (float)height, 0), VECTOR2(0,0) },      //頂点2　右下    // -- 2024.3.231
 		{ VECTOR3((float)width, 0, 0),              VECTOR2(0,0) },      //頂点4　右上
 	};
 
@@ -864,8 +864,8 @@ HRESULT CSprite::SetSrc3D(const float& fDestWidth, const float& fDestHeight, con
 	SpriteVertex vertices[] =
 	{
 		VECTOR3(-m_fDestWidth / 2,  m_fDestHeight / 2, 0), VECTOR2((float)(m_dwSrcX + m_dwSrcWidth) / dwImageWidth, (float)m_dwSrcY / dwImageHeight),                     //頂点1  左上
-		VECTOR3(m_fDestWidth / 2,  m_fDestHeight / 2, 0), VECTOR2((float)m_dwSrcX / dwImageWidth,                (float)m_dwSrcY / dwImageHeight),                        //頂点2　右上
-		VECTOR3(-m_fDestWidth / 2, -m_fDestHeight / 2, 0), VECTOR2((float)(m_dwSrcX + m_dwSrcWidth) / dwImageWidth, (float)(m_dwSrcY + m_dwSrcHeight) / dwImageHeight),   //頂点3　左下
+		VECTOR3(-m_fDestWidth / 2, -m_fDestHeight / 2, 0), VECTOR2((float)(m_dwSrcX + m_dwSrcWidth) / dwImageWidth, (float)(m_dwSrcY + m_dwSrcHeight) / dwImageHeight),   //頂点2　左下	// -- 2024.3.23
+		VECTOR3(m_fDestWidth / 2,  m_fDestHeight / 2, 0), VECTOR2((float)m_dwSrcX / dwImageWidth,                (float)m_dwSrcY / dwImageHeight),                        //頂点3　右上	// -- 2024.3.2
 		VECTOR3(m_fDestWidth / 2, -m_fDestHeight / 2, 0), VECTOR2((float)m_dwSrcX / dwImageWidth,                (float)(m_dwSrcY + m_dwSrcHeight) / dwImageHeight),      //頂点4　右下
 	};
 
@@ -902,6 +902,28 @@ HRESULT CSprite::SetSrc3D(const float& fDestWidth, const float& fDestHeight, con
 
 	return S_OK;
 }
+//------------------------------------------------------------------------ // -- 204.3.23
+//
+//	３Ｄ（ビルボード）スプライトオブジェクトを画面にレンダリング	
+//
+// -----------------------------------------------------------------------
+bool CSprite::Draw3D(CSpriteImage* pImage, const VECTOR3& vPos, const VECTOR2& vSize, const VECTOR2& vSrcPos, const VECTOR2& vSrcSize, const float& fAlpha)   // -- 2024.3.23
+{
+	return Draw3D(pImage, vPos, GameDevice()->m_mView, GameDevice()->m_mProj, GameDevice()->m_vEyePt, vSize, vSrcPos, vSrcSize, fAlpha);
+}
+bool CSprite::Draw3D(const VECTOR3& vPos, const VECTOR2& vSize, const VECTOR2& vSrcPos, const VECTOR2& vSrcSize, const float& fAlpha)    // -- 2024.3.23
+{
+	return Draw3D(vPos, GameDevice()->m_mView, GameDevice()->m_mProj, GameDevice()->m_vEyePt, vSize, vSrcPos, vSrcSize, fAlpha);
+}
+bool CSprite::Draw3D(const VECTOR3& vPos)			  // -- 2024.3.23
+{
+	return Draw3D(vPos, GameDevice()->m_mView, GameDevice()->m_mProj, GameDevice()->m_vEyePt);
+}
+bool CSprite::DrawLine3D(const VECTOR3& vStart, const VECTOR3& vEnd, const DWORD& colorABGR, const float& fAlpha)  // -- 2024.3.23
+{
+	return DrawLine3D(vStart, vEnd, GameDevice()->m_mView, GameDevice()->m_mProj, GameDevice()->m_vEyePt, colorABGR, fAlpha);
+}
+
 //------------------------------------------------------------------------ // -- 2018.8.10
 //
 //	３Ｄ（ビルボード）スプライトオブジェクトを画面にレンダリング	
@@ -1274,10 +1296,10 @@ void CFontTexture::CreateVB(const DWORD& dwWidth, const DWORD& dwHeight)
 	// z値を１以上にしないこと。クリップ空間でz=1は最も奥を意味する。したがって描画されない。
 	SpriteVertex vertices[] =
 	{
-		VECTOR3(0, (float)dwHeight, 0), VECTOR2(0,  1),      //頂点1  左下
-		VECTOR3((float)dwWidth, (float)dwHeight, 0), VECTOR2(1,  1),      //頂点2　右下     // -- 2021.1.11
-			VECTOR3(0,               0, 0), VECTOR2(0,  0),      //頂点3　左上     // -- 2021.1.11
-	VECTOR3((float)dwWidth,               0, 0), VECTOR2(1,  0)       //頂点4　右上
+		VECTOR3(0, (float)dwHeight, 0), VECTOR2(0,  1),                   //頂点1  左下
+		VECTOR3(0,               0, 0), VECTOR2(0,  0),                   //頂点3　左上     // -- 2024.3.23
+		VECTOR3((float)dwWidth, (float)dwHeight, 0), VECTOR2(1,  1),      //頂点2　右下     // -- 2024.3.23
+		VECTOR3((float)dwWidth,               0, 0), VECTOR2(1,  0)       //頂点4　右上
 	};
 
 	// バーテックスバッファがすでに作成済みかどうかチェックする
@@ -1757,8 +1779,8 @@ HRESULT CFontTexture::CreateVB3D(const float& fDestWidth, const float& fDestHeig
 	SpriteVertex vertices[] =
 	{
 		VECTOR3(-m_fDestWidth / 2,  m_fDestHeight / 2, 0), VECTOR2(1,0),     // 頂点1  左上
-		VECTOR3(m_fDestWidth / 2,  m_fDestHeight / 2, 0), VECTOR2(0,0),      // 頂点2　右上    // -- 2021.1.11
-		VECTOR3(-m_fDestWidth / 2, -m_fDestHeight / 2, 0), VECTOR2(1,1),     // 頂点3　左下    // -- 2021.1.11
+		VECTOR3(-m_fDestWidth / 2, -m_fDestHeight / 2, 0), VECTOR2(1,1),     // 頂点2　左下    // -- 2024.3.23
+		VECTOR3(m_fDestWidth / 2,  m_fDestHeight / 2, 0), VECTOR2(0,0),      // 頂点3　右上    // -- 2024.3.231
 		VECTOR3(m_fDestWidth / 2, -m_fDestHeight / 2, 0), VECTOR2(0,1),      // 頂点4　右下
 	};
 
@@ -1795,6 +1817,15 @@ HRESULT CFontTexture::CreateVB3D(const float& fDestWidth, const float& fDestHeig
 	}
 
 	return S_OK;
+}
+//------------------------------------------------------------------------ // -- 2024.3.23
+//
+//	３Ｄ（ビルボード）フォントオブジェクトを画面にレンダリング	
+//
+//------------------------------------------------------------------------ 
+bool CFontTexture::Draw3D(const VECTOR3& vPos, const TCHAR* szText, const VECTOR2& vSize, const DWORD& colorABGR, const float& fAlpha, const TCHAR* szFontName)
+{
+	return Draw3D(vPos, GameDevice()->m_mView, GameDevice()->m_mProj, GameDevice()->m_vEyePt, szText, vSize, colorABGR, fAlpha, szFontName);
 }
 //------------------------------------------------------------------------ // -- 2018.8.10
 //

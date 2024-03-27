@@ -1,6 +1,6 @@
 //------------------------------------------------------------------------
 //    メッシュ接触判定用のライブラリ
-//	  								             ver 3.2        2022.11.14
+//	  								             ver 3.3        2024.3.23
 //	                                                      Collision.cpp
 //------------------------------------------------------------------------
 #include "Collision.h"
@@ -319,8 +319,10 @@ bool CCollision::AddFbxLoad(const CFbxMesh* pFbxMesh, const MATRIX4X4& mOffset)
 			f0 = m_ColArray[n].pFace[nNumidx/3].dwIdx[0] = pFbxMesh->m_pMeshArray[i].m_nIndices[j+0] + nVertoffset;  // 全体の中でのインデックス値に変換するためにオフセットを加える
 			f1 = m_ColArray[n].pFace[nNumidx/3].dwIdx[1] = pFbxMesh->m_pMeshArray[i].m_nIndices[j+1] + nVertoffset;  // 全体の中でのインデックス値に変換するためにオフセットを加える
 			f2 = m_ColArray[n].pFace[nNumidx/3].dwIdx[2] = pFbxMesh->m_pMeshArray[i].m_nIndices[j+2] + nVertoffset;  // 全体の中でのインデックス値に変換するためにオフセットを加える
-			m_ColArray[n].pFace[nNumidx / 3].vNormal = normalize(cross(m_ColArray[n].pVert[f2] - m_ColArray[n].pVert[f0],		// 面法線を作成する
-																			m_ColArray[n].pVert[f1] - m_ColArray[n].pVert[f0]));
+			//m_ColArray[n].pFace[nNumidx / 3].vNormal = normalize(cross(m_ColArray[n].pVert[f2] - m_ColArray[n].pVert[f0],		// 面法線を作成する		  // -- 2024.3.23
+			//																m_ColArray[n].pVert[f1] - m_ColArray[n].pVert[f0]));
+			m_ColArray[n].pFace[nNumidx / 3].vNormal = normalize(cross(m_ColArray[n].pVert[f1] - m_ColArray[n].pVert[f0],		// 面法線を作成する		  // -- 2024.3.23
+																			m_ColArray[n].pVert[f2] - m_ColArray[n].pVert[f0]));
 			m_ColArray[n].pFace[nNumidx / 3].AABB.MakeAABB(m_ColArray[n].pVert[f0], m_ColArray[n].pVert[f1], m_ColArray[n].pVert[f2]);  // ポリゴンのAABBを作成する
 		}
 

@@ -1,6 +1,6 @@
 //=============================================================================
 //		メッシュの読み込みと描画のプログラム
-//　                                                  ver 1.0        2021.2.4
+//　                                                  ver 3.3        2024.3.234
 //
 //		メッシュ処理
 //
@@ -13,7 +13,6 @@
 
 #include <list>
 #include "Direct3D.h"
-#include "FbxMeshAnim.h"
 #include "Shader.h"
 
 ////警告非表示
@@ -248,16 +247,17 @@ public:
 
 	int GetEndFrame(const int& animNum);  // endFrame-startFrameを取得 
 
-	MATRIX4X4 GetFrameMatrices(ANIMATION_STATUS& animStatus, const DWORD& nBone);
-	MATRIX4X4 GetFrameMatrices(ANIMATION_STATUS& animStatus, const DWORD& nBone, const DWORD& nMesh);
-	MATRIX4X4 GetFrameMatrices(ANIMATION_STATUS& animStatus, const MATRIX4X4& mWorld, const DWORD& nBone);
-	MATRIX4X4 GetFrameMatrices(ANIMATION_STATUS& animStatus, const MATRIX4X4& mWorld, const DWORD& nBone, const DWORD& nMesh);
+	MATRIX4X4 GetFrameMatrices(const DWORD& nBone);							       // -- 2024.3.14
+	MATRIX4X4 GetFrameMatrices(const DWORD& nBone, const DWORD& nMesh);		       // -- 2024.3.14
+	MATRIX4X4 GetFrameMatrices(const MATRIX4X4& mWorld, const DWORD& nBone);       // -- 2024.3.14
+	MATRIX4X4 GetFrameMatrices(const MATRIX4X4& mWorld, const DWORD& nBone, const DWORD& nMesh);      // -- 2024.3.14
 
-//	int GetRootAnimType(const int& animNum) { return m_RootAnimType[animNum]; }      // -- 2020.12.15 -- 3
-	MATRIX4X4 GetRootAnimMatrices(ANIMATION_STATUS& animStatus, const int& UpFrame = 0);      // -- 2020.12.15 -- 3
-	MATRIX4X4 GetRootAnimUpMatrices(ANIMATION_STATUS& animStatus, const int& UpFrame = 0, const int& StartFrameUp = 1);      // -- 2020.12.15 -- 3
+	int GetRootAnimType() { return m_RootAnimType[animInfo.animID]; }      // -- 2024.3.14
+	MATRIX4X4 GetRootAnimMatrices( const int& UpFrame = 0);      // -- 2024.3.14
+	MATRIX4X4 GetRootAnimUpMatrices(const int& UpFrame = 0, const int& StartFrameUp = 1);      // -- 2024.3.14
 	void MakeRootAnimAndShaderMatrix(const int& animNum, ROOTANIMTYPE RAType);        // ルートボーンアニメーションとシェーダーマトリックスの作成       // -- 2020.12.15 -- 3
 
+	void ConvIndicesData(int mi);                        // -- 2024.3.23
 };
 
 //

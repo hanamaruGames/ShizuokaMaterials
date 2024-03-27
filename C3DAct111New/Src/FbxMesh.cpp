@@ -1,6 +1,6 @@
 //=============================================================================
 //		メッシュの読み込みと描画のプログラム
-//　                                                  ver 1.0        2021.2.4
+//　                                                  ver 3.3        2024.3.23
 //
 //		メッシュ処理
 //
@@ -11,6 +11,8 @@
 #include "FbxMesh.h"
 #include "GameMain.h"
 
+
+//------------------------------------------------------------------------
 void CFbxMesh::SetAnimation(int id, int frame)
 {
 	animInfo.animID = id;
@@ -164,8 +166,8 @@ bool CFbxMesh::Load(const TCHAR* FName)
 			MessageBox(nullptr, FName, _T("■□■ メッシュファイル('MESH')ではありません ■□■"), MB_OK);
 			return false;
 		}
-		// バージョンのチェックは行わない
-		if (Head[4] == L'1')
+		// バージョンのチェックは行わない	 		// -- 2024.3.23
+		if (Head[4] < L'2')
 		{
 			;
 		}
@@ -280,6 +282,7 @@ bool CFbxMesh::Load(const TCHAR* FName)
 				p += sizeof(int);
 
 				memcpy_s(m_pMeshArray[mi].m_nIndices, sizeof(DWORD)*m_pMeshArray[mi].m_dwIndicesNum, p, sizeof(DWORD)*m_pMeshArray[mi].m_dwIndicesNum);  // インデックス配列にインデックスを得る
+				if (Head[4] < L'2') ConvIndicesData(mi);	// 旧バージョンのときは右回り表に変換する   // -- 2024.3.23
 				p += sizeof(DWORD)*m_pMeshArray[mi].m_dwIndicesNum;
 
 				// 頂点のレイアウトを変換し、接線と従法線を計算
@@ -341,6 +344,7 @@ bool CFbxMesh::Load(const TCHAR* FName)
 				p += sizeof(int);
 
 				memcpy_s(m_pMeshArray[mi].m_nIndices, sizeof(DWORD)*m_pMeshArray[mi].m_dwIndicesNum, p, sizeof(DWORD)*m_pMeshArray[mi].m_dwIndicesNum);  // インデックス配列にインデックスを得る
+				if (Head[4] < L'2') ConvIndicesData(mi);	// 旧バージョンのときは右回り表に変換する   // -- 2024.3.23
 				p += sizeof(DWORD)*m_pMeshArray[mi].m_dwIndicesNum;
 
 				// 頂点のレイアウトを変換し、接線と従法線を計算
@@ -394,6 +398,21 @@ bool CFbxMesh::Load(const TCHAR* FName)
 	}
 
 	return false;
+}
+
+//------------------------------------------------------------------------  // -- 2024.3.23
+//	 バージョンが2.0.0以前のときはポリゴンの左回りが表になっているので
+//   右回り表に変更する
+//------------------------------------------------------------------------
+void CFbxMesh::ConvIndicesData(int mi)
+{
+	for (int i = 0; i < m_pMeshArray[mi].m_dwIndicesNum; i += 3)
+	{
+		int w;
+		w = m_pMeshArray[mi].m_nIndices[i + 1];
+		m_pMeshArray[mi].m_nIndices[i + 1] = m_pMeshArray[mi].m_nIndices[i + 2];
+		m_pMeshArray[mi].m_nIndices[i + 2] = w;
+	}
 }
 
 //------------------------------------------------------------------------
@@ -1172,13 +1191,12 @@ int CFbxMesh::GetEndFrame(const int& animNum)
 // （そのままの相対マトリックスを取得）
 // 
 // 引数：
-//    ANIMATION_STATUS& animStatus  アニメーションステータス
 //    const DWORD& nBone            ボーン番号
 //    const DWORD& nMesh            メッシュ番号
 // 戻り値：
 //    MATRIX4X4                     指定ボーンのマトリックス（そのままの相対マトリックス）
 //==========================================================================================================================================================
-MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const DWORD& nBone, const DWORD& nMesh)
+MATRIX4X4 CFbxMesh::GetFrameMatrices( const DWORD& nBone, const DWORD& nMesh)
 {
 	MATRIX4X4 mBoneWorld;
 
@@ -1193,7 +1211,7 @@ MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const DWORD& 
 		OutputDebugString(_T("■□■ GetFrameMatrices() メッシュ番号不正　又は　ボーン番号不正 ■□■\n"));
 		return XMMatrixIdentity();
 	}
-	if (m_allAnimationCount <= animStatus.animNum)
+	if (m_allAnimationCount <= animInfo.animID)
 	{
 		MessageBox(nullptr, _T("■□■ GetFrameMatrices() ■□■"), _T("■□■ スキンメッシュに、指定されたアニメーションが読み込まれていません ■□■"), MB_OK);
 		return XMMatrixIdentity();
@@ -1202,18 +1220,18 @@ MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const DWORD& 
 	//  アニメーションが変わっていた場合、作業領域上でフレームを最初に戻す --------------------------------- // -- 2018.8.28
 	// なお、最初とはanimFrameを０フレームにすること。startFrameではない。理由はanimFrameは添字番号だからである。
 	int  animFrameW;
-	animFrameW = animStatus.animFrame;
-	if (animStatus.animNum != animStatus.animNumOld) animFrameW = 0;
+	animFrameW = animInfo.frame;
+	//if (animStatus.animNum != animStatus.animNumOld) animFrameW = 0;
 
 	// 指定メッシュの指定アニメーションの指定ボーンの指定フレームのマトリックスを取得
-	mBoneWorld = m_pMeshArray[nMesh].m_BoneArray[animStatus.animNum][nBone].framePose[animFrameW]; // -- 2018.8.28
+	mBoneWorld = m_pMeshArray[nMesh].m_BoneArray[animInfo.animID][nBone].framePose[animFrameW]; // -- 2018.8.28
 
 	// ルートボーンアニメをするときの処理                                   // -- 2020.12.15
-	if( m_RootAnimType[animStatus.animNum] != eRootAnimNone)
+	if( m_RootAnimType[animInfo.animID] != eRootAnimNone)
 	{
 		// ルートボーンアニメ行列の逆行列を掛け合わせてマトリックスを作成する
 		mBoneWorld =
-			mBoneWorld * XMMatrixInverse(nullptr, m_RootBoneArray[animStatus.animNum].framePose[animFrameW]);
+			mBoneWorld * XMMatrixInverse(nullptr, m_RootBoneArray[animInfo.animID].framePose[animFrameW]);
 	}
 
 	// マトリックスを右手座標系から左手座標系に変換(Z軸を反転)
@@ -1221,10 +1239,10 @@ MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const DWORD& 
 
 	return mBoneWorld;
 }
-MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const DWORD& nBone)
+MATRIX4X4 CFbxMesh::GetFrameMatrices(const DWORD& nBone)
 {
 	// メッシュ番号は０として呼び出し
-	return GetFrameMatrices(animStatus, nBone, 0);
+	return GetFrameMatrices(nBone, 0);
 }
 
 //==========================================================================================================================================================
@@ -1232,14 +1250,13 @@ MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const DWORD& 
 // （ワールドマトリックスと掛け合わせた結果を取得）
 // 
 // 引数：
-//    ANIMATION_STATUS& animStatus  アニメーションステータス
 //    const MATRIX4X4& mWorld       ワールドマトリックス
 //    const DWORD& nBone            ボーン番号
 //    const DWORD& nMesh            メッシュ番号
 // 戻り値：
 //    MATRIX4X4                    指定ボーンのマトリックス（ワールドマトリックスと掛け合わせたマトリックス）
 //==========================================================================================================================================================
-MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const MATRIX4X4& mWorld, const DWORD& nBone, const DWORD& nMesh)
+MATRIX4X4 CFbxMesh::GetFrameMatrices(const MATRIX4X4& mWorld, const DWORD& nBone, const DWORD& nMesh)
 {
 	MATRIX4X4 mBoneWorld;
 
@@ -1254,7 +1271,7 @@ MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const MATRIX4
 		OutputDebugString(_T("■□■ GetFrameMatrices() メッシュ番号不正　又は　ボーン番号不正 ■□■\n"));
 		return mWorld;
 	}
-	if (m_allAnimationCount <= animStatus.animNum)
+	if (m_allAnimationCount <= animInfo.animID)
 	{
 		MessageBox(nullptr, _T("■□■ GetFrameMatrices() ■□■"), _T("■□■ スキンメッシュに、指定されたアニメーションが読み込まれていません ■□■"), MB_OK);
 		return mWorld;
@@ -1263,18 +1280,18 @@ MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const MATRIX4
 	//  アニメーションが変わっていた場合、作業領域上でフレームを最初に戻す --------------------------------- // -- 2018.8.28
 	// なお、最初とはanimFrameを０フレームにすること。startFrameではない。理由はanimFrameは添字番号だからである。
 	int  animFrameW;
-	animFrameW = animStatus.animFrame;
-	if (animStatus.animNum != animStatus.animNumOld) animFrameW = 0;
+	animFrameW = animInfo.frame;
+	//if (animStatus.animNum != animStatus.animNumOld) animFrameW = 0;
 
 	// 指定メッシュの指定アニメーションの指定ボーンの指定フレームのマトリックスを取得
-	mBoneWorld = m_pMeshArray[nMesh].m_BoneArray[animStatus.animNum][nBone].framePose[animFrameW];    // -- 2018.8.28
+	mBoneWorld = m_pMeshArray[nMesh].m_BoneArray[animInfo.animID][nBone].framePose[animFrameW];    // -- 2018.8.28
 
 	// ルートボーンアニメをするときの処理                                   // -- 2020.12.15
-	if (m_RootAnimType[animStatus.animNum] != eRootAnimNone)
+	if (m_RootAnimType[animInfo.animID] != eRootAnimNone)
 	{
 		// ルートボーンアニメ行列の逆行列を掛け合わせてマトリックスを作成する
 		mBoneWorld =
-			mBoneWorld * XMMatrixInverse(nullptr, m_RootBoneArray[animStatus.animNum].framePose[animFrameW]);
+			mBoneWorld * XMMatrixInverse(nullptr, m_RootBoneArray[animInfo.animID].framePose[animFrameW]);
 	}
 
 	// マトリックスを右手座標系から左手座標系に変換(Z軸を反転)
@@ -1283,23 +1300,22 @@ MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const MATRIX4
 	return mBoneWorld * mWorld;  // ワールドマトリックスと掛け合わせる
 }
 
-MATRIX4X4 CFbxMesh::GetFrameMatrices(ANIMATION_STATUS& animStatus, const MATRIX4X4& mWorld, const DWORD& nBone)
+MATRIX4X4 CFbxMesh::GetFrameMatrices(const MATRIX4X4& mWorld, const DWORD& nBone)
 {
 	// メッシュ番号は０として呼び出し
-	return GetFrameMatrices(animStatus, mWorld, nBone, 0);
+	return GetFrameMatrices(mWorld, nBone, 0);
 }
 
 //==========================================================================================================================================================
 // ルートボーンアニメーションのマトリックスを取得                                                                                    // -- 2020.12.15 -- 3
 // 
 // 引数：
-//    ANIMATION_STATUS& animStatus  アニメーションステータス
 //    const int& UpFrame            アニメーションフレームの現在値からの増分（省略値：０）
 //
 // 戻り値：
 //    MATRIX4X4                    ルートボーンのマトリックス
 //==========================================================================================================================================================
-MATRIX4X4 CFbxMesh::GetRootAnimMatrices(ANIMATION_STATUS& animStatus, const int& UpFrame)
+MATRIX4X4 CFbxMesh::GetRootAnimMatrices(const int& UpFrame)
 {
 	MATRIX4X4 mBoneWorld;
 
@@ -1308,7 +1324,7 @@ MATRIX4X4 CFbxMesh::GetRootAnimMatrices(ANIMATION_STATUS& animStatus, const int&
 		MessageBox(nullptr, _T("■□■ GetRootAnimMatrices() ■□■"), _T("■□■ スタティックメッシュには使用できません ■□■"), MB_OK);
 		return XMMatrixIdentity();
 	}
-	if (m_allAnimationCount <= animStatus.animNum)
+	if (m_allAnimationCount <= animInfo.animID)
 	{
 		MessageBox(nullptr, _T("■□■ GetRootAnimMatrices() ■□■"), _T("■□■ スキンメッシュに、指定されたアニメーションが読み込まれていません ■□■"), MB_OK);
 		return XMMatrixIdentity();
@@ -1318,21 +1334,21 @@ MATRIX4X4 CFbxMesh::GetRootAnimMatrices(ANIMATION_STATUS& animStatus, const int&
 	// 上限・下限値を超えていた場合は適切な位置に訂正する。
 	// なお、最初とはanimFrameを０フレームにすること。startFrameではない。理由はanimFrameは添字番号だからである。
 	int  animFrameW;
-	animFrameW = animStatus.animFrame + UpFrame;
+	animFrameW = animInfo.frame + UpFrame;
 	if (animFrameW < 0)
 	{
-		animFrameW = animFrameW + (m_Animation[animStatus.animNum].endFrame - m_Animation[animStatus.animNum].startFrame);
+		animFrameW = animFrameW + (m_Animation[animInfo.animID].endFrame - m_Animation[animInfo.animID].startFrame);
 	}
-	if (animFrameW > m_Animation[animStatus.animNum].endFrame - m_Animation[animStatus.animNum].startFrame)
+	if (animFrameW > m_Animation[animInfo.animID].endFrame - m_Animation[animInfo.animID].startFrame)
 	{
-		animFrameW = animFrameW - (m_Animation[animStatus.animNum].endFrame - m_Animation[animStatus.animNum].startFrame);
+		animFrameW = animFrameW - (m_Animation[animInfo.animID].endFrame - m_Animation[animInfo.animID].startFrame);
 	}
 	//  アニメーションが変わっていた場合、作業領域上でフレームを最初に戻す
 	// なお、最初とはanimFrameを０フレームにすること。startFrameではない。理由はanimFrameは添字番号だからである。
-	if (animStatus.animNum != animStatus.animNumOld) animFrameW = 0;
+	//if (animStatus.animNum != animStatus.animNumOld) animFrameW = 0;
 
 	// ルートボーンアニメの現在フレームのマトリックスを取得
-	mBoneWorld = m_RootBoneArray[animStatus.animNum].framePose[animFrameW];
+	mBoneWorld = m_RootBoneArray[animInfo.animID].framePose[animFrameW];
 
 	return mBoneWorld;
 }
@@ -1341,7 +1357,6 @@ MATRIX4X4 CFbxMesh::GetRootAnimMatrices(ANIMATION_STATUS& animStatus, const int&
 // ルートボーンアニメーションの現在値フレームの一つ前のフレーム位置からの増分マトリックスを取得する                                    // -- 2020.12.15 -- 3
 // 
 // 引数：
-//    ANIMATION_STATUS& animStatus  アニメーションステータス
 //    const int& UpFrame            アニメーションフレームの現在値からの増分（省略値：０）
 //    const int& StartFrameUp       アニメフレームが開始フレーム（フレーム０）のときの増分値の処理方法（省略値：１）
 //                                    0:XMMatrixIdentity()にする   1:０～１の増分値を使用する
@@ -1349,7 +1364,7 @@ MATRIX4X4 CFbxMesh::GetRootAnimMatrices(ANIMATION_STATUS& animStatus, const int&
 // 戻り値：
 //    MATRIX4X4                     ルートボーンの一つ前の位置からの増分マトリックス
 //==========================================================================================================================================================
-MATRIX4X4 CFbxMesh::GetRootAnimUpMatrices(ANIMATION_STATUS& animStatus, const int& UpFrame, const int& StartFrameUp)
+MATRIX4X4 CFbxMesh::GetRootAnimUpMatrices( const int& UpFrame, const int& StartFrameUp)
 {
 	MATRIX4X4 mBoneWorld, mBoneWorldOld;
 
@@ -1358,7 +1373,7 @@ MATRIX4X4 CFbxMesh::GetRootAnimUpMatrices(ANIMATION_STATUS& animStatus, const in
 		MessageBox(nullptr, _T("■□■ GetRootAnimUpMatrices() ■□■"), _T("■□■ スタティックメッシュには使用できません ■□■"), MB_OK);
 		return XMMatrixIdentity();
 	}
-	if (m_allAnimationCount <= animStatus.animNum)
+	if (m_allAnimationCount <= animInfo.animID)
 	{
 		MessageBox(nullptr, _T("■□■ GetRootAnimUpMatrices() ■□■"), _T("■□■ スキンメッシュに、指定されたアニメーションが読み込まれていません ■□■"), MB_OK);
 		return XMMatrixIdentity();
@@ -1368,18 +1383,18 @@ MATRIX4X4 CFbxMesh::GetRootAnimUpMatrices(ANIMATION_STATUS& animStatus, const in
 	// 上限・下限値を超えていた場合は適切な位置に訂正する。
 	// なお、最初とはanimFrameを０フレームにすること。startFrameではない。理由はanimFrameは添字番号だからである。
 	int  animFrameW;
-	animFrameW = animStatus.animFrame + UpFrame;
+	animFrameW = animInfo.frame + UpFrame;
 	if (animFrameW < 0)
 	{
-		animFrameW = animFrameW + (m_Animation[animStatus.animNum].endFrame - m_Animation[animStatus.animNum].startFrame);
+		animFrameW = animFrameW + (m_Animation[animInfo.animID].endFrame - m_Animation[animInfo.animID].startFrame);
 	}
-	if (animFrameW > m_Animation[animStatus.animNum].endFrame - m_Animation[animStatus.animNum].startFrame)
+	if (animFrameW > m_Animation[animInfo.animID].endFrame - m_Animation[animInfo.animID].startFrame)
 	{
-		animFrameW = animFrameW - (m_Animation[animStatus.animNum].endFrame - m_Animation[animStatus.animNum].startFrame);
+		animFrameW = animFrameW - (m_Animation[animInfo.animID].endFrame - m_Animation[animInfo.animID].startFrame);
 	}
 	//  アニメーションが変わっていた場合、作業領域上でフレームを最初に戻す
 	// なお、最初とはanimFrameを０フレームにすること。startFrameではない。理由はanimFrameは添字番号だからである。
-	if (animStatus.animNum != animStatus.animNumOld) animFrameW = 0;
+	//if (animStatus.animNum != animStatus.animNumOld) animFrameW = 0;
 
 	// アニメーションフレームの現在値が０の場合
 	if (animFrameW <= 0)
@@ -1389,10 +1404,10 @@ MATRIX4X4 CFbxMesh::GetRootAnimUpMatrices(ANIMATION_STATUS& animStatus, const in
 	}
 
 	// ルートボーンアニメの現在フレームのマトリックスを取得
-	mBoneWorld = m_RootBoneArray[animStatus.animNum].framePose[animFrameW];
+	mBoneWorld = m_RootBoneArray[animInfo.animID].framePose[animFrameW];
 
 	// ルートボーンアニメの現在値より一つ前のフレームのマトリックスを取得
-	mBoneWorldOld = m_RootBoneArray[animStatus.animNum].framePose[animFrameW-1];
+	mBoneWorldOld = m_RootBoneArray[animInfo.animID].framePose[animFrameW-1];
 
 	// 現在値フレームマトリックスの一つ前のフレームマトリックスからの増分マトリックスを得る
 	mBoneWorld = XMMatrixInverse(nullptr, mBoneWorldOld) * mBoneWorld;
@@ -1428,7 +1443,7 @@ void CFbxMesh::Render(const MATRIX4X4& mWorld, const MATRIX4X4& mView, const MAT
 			MessageBox(nullptr, _T("■□■ Render() ■□■"), _T("■□■ スキンメッシュにアニメーションが読み込まれていません ■□■"), MB_OK);
 			return;
 		}
-		ANIMATION_STATUS animStatus;
+		//ANIMATION_STATUS animStatus;
 		RenderSkin(animInfo, mWorld, mView, mProj, vLight, vEye);
 	}
 }
@@ -1444,11 +1459,12 @@ void CFbxMesh::RenderDisplace(const MATRIX4X4& mWorld, const MATRIX4X4& mView, c
 			MessageBox(nullptr, _T("■□■ RenderDisplace() ■□■"), _T("■□■ スキンメッシュにアニメーションが読み込まれていません ■□■"), MB_OK);
 			return;
 		}
-		ANIMATION_STATUS animStatus;
+		//ANIMATION_STATUS animStatus;
 		RenderDisplaceSkin(animInfo, mWorld, mView, mProj, vLight, vEye);
 	}
 }
 
+// -----------------------------------------------------------------------
 void CFbxMesh::Render(const MATRIX4X4& mWorld)
 {
 	Render(mWorld, GameDevice()->m_mView, GameDevice()->m_mProj, GameDevice()->m_vLightDir, GameDevice()->m_vEyePt);
@@ -1456,7 +1472,7 @@ void CFbxMesh::Render(const MATRIX4X4& mWorld)
 
 void CFbxMesh::RenderDisplace(const MATRIX4X4& mWorld)
 {
-	Render(mWorld, GameDevice()->m_mView, GameDevice()->m_mProj, GameDevice()->m_vLightDir, GameDevice()->m_vEyePt);
+	RenderDisplace(mWorld, GameDevice()->m_mView, GameDevice()->m_mProj, GameDevice()->m_vLightDir, GameDevice()->m_vEyePt);
 }
 
 void CFbxMesh::Render(ANIMATION_INFO& animInfo, const MATRIX4X4& mWorld)
